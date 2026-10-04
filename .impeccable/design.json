@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-04T11:00:49Z",
+  "title": "Design System: Kalam Chat",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Muted sage",
+        "canonical": "#657564",
+        "tonalRamp": ["#040f04", "#182618", "#313f30", "#4b5a4a", "#677766", "#849583", "#a2b4a1", "#e2f5e1"]
+      },
+      "primary-dark": {
+        "role": "primary",
+        "displayName": "Pale sage",
+        "canonical": "#a6b49f",
+        "tonalRamp": ["#050e02", "#1b2515", "#333f2d", "#4d5a47", "#697663", "#879480", "#a5b39e", "#e5f4de"]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Warm paper",
+        "canonical": "#fbfaf7",
+        "tonalRamp": ["#0c0b09", "#22221f", "#3b3a38", "#565553", "#72716f", "#908f8c", "#afaeab", "#efeeeb"]
+      },
+      "dark-surface": {
+        "role": "neutral",
+        "displayName": "Ink canvas",
+        "canonical": "#1c1e1b",
+        "tonalRamp": ["#0a0c09", "#20221f", "#393b38", "#545653", "#70726f", "#8d908c", "#acafab", "#edefeb"]
+      }
+    },
+    "shadows": [
+      { "name": "overlay-light", "value": "0 16px 48px rgb(31 34 27 / 12%)", "purpose": "Lift the settings panel, conversation menus, and open mobile history drawer above light surfaces." },
+      { "name": "overlay-dark", "value": "0 16px 48px rgb(0 0 0 / 36%)", "purpose": "Lift the settings panel, conversation menus, and open mobile history drawer above dark surfaces." },
+      { "name": "composer", "value": "0 4px 15px rgb(26 30 21 / 4%)", "purpose": "Separate the composer slightly from the reading area." }
+    ],
+    "motion": [
+      { "name": "control-state", "value": "120ms ease", "purpose": "Transition button and border states." },
+      { "name": "mobile-drawer", "value": "180ms ease", "purpose": "Slide the conversation drawer into view." }
+    ],
+    "breakpoints": [
+      { "name": "mobile-drawer", "value": "700px" },
+      { "name": "narrow-mobile", "value": "380px" }
+    ]
+  },
+  "components": [
+      {
+        "name": "Send / stop button",
+        "kind": "button",
+        "refersTo": "button-primary",
+        "description": "Sends a non-empty draft; switches to a stop control while a response is generating. The dark theme uses button-primary-dark and a dark stop-icon foreground on the pale error fill.",
+        "html": "<button class=\"ds-send\" type=\"button\" aria-label=\"Send message\"><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 19V5\"/><path d=\"m5 12 7-7 7 7\"/></svg></button>",
+        "css": ".ds-send { display: grid; width: 31px; height: 31px; place-items: center; border: 0; border-radius: 8px; color: #fff; background: #657564; cursor: pointer; transition: background 120ms ease, transform 120ms ease; } .ds-send:hover:not(:disabled) { background: #536653; transform: translateY(-1px); } .ds-send:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; } :host-context([data-theme=\"dark\"]) .ds-send:not(:disabled) { color: #20251f; background: #a6b49f; } .ds-send:disabled { color: var(--text-muted); background: var(--surface-muted); cursor: not-allowed; } .ds-send-stop { color: #fff !important; background: var(--error) !important; } :host-context([data-theme=\"dark\"]) .ds-send-stop { color: #20251f !important; }"
+      },
+      {
+        "name": "Icon button",
+        "kind": "button",
+        "refersTo": "button-ghost",
+        "description": "Provides a compact secondary navigation or message action; the dark theme uses button-ghost-dark.",
+        "html": "<button class=\"ds-icon-button\" type=\"button\" aria-label=\"Open conversations menu\"><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\" width=\"19\" height=\"19\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M4 5h16\"/><path d=\"M4 12h16\"/><path d=\"M4 19h16\"/></svg></button>",
+        "css": ".ds-icon-button { display: inline-grid; width: 29px; height: 29px; place-items: center; padding: 0; border: 0; border-radius: 6px; color: var(--text-secondary); background: transparent; cursor: pointer; } .ds-icon-button:hover { color: var(--text); background: var(--surface-muted); } .ds-icon-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }"
+      },
+      {
+        "name": "Composer field",
+        "kind": "input",
+        "refersTo": "composer-field",
+        "description": "Captures a one-line question or growing multi-line draft, up to 220px before scrolling.",
+        "html": "<div class=\"ds-composer\"><textarea aria-label=\"Message Kalam\" rows=\"1\" placeholder=\"Ask a question or explore an idea…\"></textarea></div>",
+        "css": ".ds-composer { display: flex; align-items: flex-end; gap: 10px; min-height: 54px; padding: 10px 10px 9px 15px; border: 1px solid var(--border-strong); border-radius: 12px; background: var(--surface); box-shadow: 0 4px 15px rgb(26 30 21 / 4%); transition: border-color 120ms ease, box-shadow 120ms ease; } .ds-composer textarea { flex: 1; min-width: 0; min-height: 26px; max-height: 220px; resize: none; overflow-y: auto; padding: 4px 0 2px; border: 0; outline: 0; color: var(--text); background: transparent; font: 12px/1.6 \"Source Sans 3 Variable\", ui-sans-serif, system-ui, sans-serif; } .ds-composer:focus-within { border-color: color-mix(in srgb, var(--accent) 65%, var(--border)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent); } .ds-composer textarea::placeholder { color: var(--text-muted); }"
+      },
+      {
+        "name": "Model selector",
+        "kind": "custom",
+        "refersTo": "model-control",
+        "description": "Chooses an application-listed model and can show streaming, vision, or attachment capability labels. The dark theme uses model-control-dark.",
+        "html": "<label class=\"ds-model\"><span class=\"ds-model-label\"><span>Model name</span><small>Streaming</small></span><select aria-label=\"Choose a model\"><option>Model name</option></select><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\" width=\"14\" height=\"14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m6 9 6 6 6-6\"/></svg></label>",
+        "css": ".ds-model { position: relative; display: flex; align-items: center; min-width: 0; height: 34px; padding: 0 29px 0 10px; border: 1px solid var(--border); border-radius: 7px; color: var(--text); background: var(--surface); } .ds-model-label { display: flex; align-items: center; gap: 7px; max-width: 280px; overflow: hidden; color: var(--text-secondary); font-size: 10.5px; white-space: nowrap; } .ds-model-label > span { overflow: hidden; text-overflow: ellipsis; } .ds-model-label small { flex: 0 0 auto; padding: 2px 5px; border-radius: 4px; color: var(--text-secondary); background: var(--surface-soft); font-size: 8px; } .ds-model select { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; opacity: 0; cursor: pointer; } .ds-model select:disabled { cursor: not-allowed; } .ds-model > svg { position: absolute; right: 9px; color: var(--text-muted); pointer-events: none; } .ds-model:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }"
+      },
+      {
+        "name": "History navigation row",
+        "kind": "nav",
+        "refersTo": "history-navigation",
+        "description": "Marks the selected local conversation in the history rail; the dark theme uses history-navigation-dark.",
+        "html": "<nav class=\"ds-history\" aria-label=\"Recent conversations\"><button class=\"ds-history-current\" type=\"button\" aria-current=\"page\"><span>Research notes</span><small>Today</small></button></nav>",
+        "css": ".ds-history { width: 252px; padding: 4px; background: var(--sidebar); } .ds-history-current { display: flex; width: 100%; min-height: 39px; flex-direction: column; justify-content: center; padding: 5px 10px; border: 0; border-radius: 7px; color: var(--text); background: var(--sidebar-hover); text-align: left; font: inherit; cursor: pointer; } .ds-history-current small { margin-top: 1px; color: var(--text-muted); font-size: 9.5px; } .ds-history-current:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }"
+      },
+      {
+        "name": "Message stream",
+        "kind": "custom",
+        "refersTo": "message-stream",
+        "description": "Keeps assistant prose on the reading surface and gives user turns a compact tinted bubble; the dark theme uses message-stream-dark.",
+        "html": "<section class=\"ds-message-stream\" aria-label=\"Conversation messages\"><article class=\"ds-message ds-user\"><div class=\"ds-label\">You</div><p>Explain this result.</p></article><article class=\"ds-message\"><div class=\"ds-label\">Kalam</div><p>Here is a careful explanation.</p></article></section>",
+        "css": ".ds-message-stream { padding: 24px 24px 34px; color: var(--text); font: 400 13px/1.75 \"Source Sans 3 Variable\", ui-sans-serif, system-ui, sans-serif; } .ds-message { width: min(740px, 100%); margin: 0 auto; } .ds-message + .ds-message { margin-top: 27px; } .ds-label { margin-bottom: 8px; color: var(--text-muted); font-size: 10px; font-weight: 600; letter-spacing: .15px; } .ds-message p { margin: 0; } .ds-user p { display: table; max-width: min(680px, 91%); padding: 9px 13px; border: 1px solid var(--border); border-radius: 4px 12px 12px; background: var(--surface-soft); } @media (max-width: 700px) { .ds-message-stream { padding: 21px 15px 26px; } .ds-message { width: 100%; } .ds-message + .ds-message { margin-top: 22px; } .ds-message p { font-size: 12.5px; } }"
+      },
+      {
+        "name": "Suggested prompt",
+        "kind": "chip",
+        "refersTo": "suggestion-prompt",
+        "description": "Places a suggested prompt in the composer draft; prompts stack at narrow mobile widths. The dark theme uses suggestion-prompt-dark.",
+        "html": "<button class=\"ds-suggestion\" type=\"button\">Help me think through a result<span aria-hidden=\"true\">↗</span></button>",
+        "css": ".ds-suggestion { display: inline-flex; min-height: 34px; align-items: center; gap: 10px; padding: 0 11px; border: 1px solid var(--border); border-radius: 7px; color: var(--text-secondary); background: var(--surface); font: inherit; cursor: pointer; transition: border-color 120ms ease, background 120ms ease; } .ds-suggestion:hover { border-color: var(--border-strong); color: var(--text); background: var(--surface-soft); } .ds-suggestion:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; } .ds-suggestion span { color: var(--text-muted); } @media (max-width: 380px) { .ds-suggestion { width: 100%; justify-content: space-between; } }"
+      },
+      {
+        "name": "Code block",
+        "kind": "custom",
+        "refersTo": "code-block",
+        "description": "Presents fenced code with a language label, copy control, and scrollable preformatted region; syntax colors follow the selected theme, with dark tokens kept at least 4.5:1 against the charcoal surface.",
+        "html": "<div class=\"ds-code\"><div class=\"ds-code-toolbar\"><span>typescript</span><button type=\"button\" aria-label=\"Copy code block\">Copy</button></div><pre><code>const total = 3</code></pre></div>",
+        "css": ".ds-code { overflow: hidden; border: 1px solid var(--border); border-radius: 8px; background: #f8f8f6; } .ds-code-toolbar { display: flex; min-height: 31px; align-items: center; justify-content: space-between; padding: 0 9px 0 12px; border-bottom: 1px solid var(--border); color: var(--text-muted); font: 9.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; } .ds-code-toolbar button { display: flex; height: 24px; align-items: center; padding: 0 5px; border: 0; border-radius: 4px; color: var(--text-secondary); background: transparent; font: inherit; cursor: pointer; } .ds-code-toolbar button:hover { color: var(--text); background: var(--surface-muted); } .ds-code pre { max-width: 100%; margin: 0; padding: 12px 14px; overflow: auto; color: #343630; background: transparent; font: 400 11px/1.65 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; tab-size: 2; white-space: pre; } .ds-code code { font: inherit; } :host-context([data-theme=\"dark\"]) .ds-code { background: #252622; } :host-context([data-theme=\"dark\"]) .ds-code pre { color: #deded7; } @media (max-width: 700px) { .ds-code pre { font-size: 10px; } }"
+      }
+  ],
+  "narrative": {
+    "northStar": "The research notebook",
+    "overview": "Kalam gives technical conversations a quiet reading workspace. Graphite is the default canvas, with warm paper in light mode and muted sage for actions and selected state. Fine borders and tonal surfaces separate controls without turning the conversation into a dashboard of cards.\n\nSelf-hosted Source Sans 3 Variable carries interface text, headings, prompts, and answers; monospace is reserved for code. The small Georgia italic `k` belongs only to the wordmark mark, while interface controls use Lucide icons. Local history sits beside one centered conversation column.",
+    "keyCharacteristics": [
+      "Dark by default, with a warm-paper light theme.",
+      "Muted sage marks actions and selected states.",
+      "A narrow history rail frames a wide technical reading column.",
+      "Monospace is reserved for code and its language labels."
+    ],
+    "rules": [
+      { "name": "The Sage Action Rule", "body": "Use sage for actions and selected states. Keep the surrounding surface neutral.", "section": "colors" },
+      { "name": "The Contrast Rule", "body": "Theme-specific secondary and supporting text must meet 4.5:1 against the paper or graphite surfaces where they appear.", "section": "colors" }
+    ],
+    "dos": [
+      "Do keep Source Sans 3 Variable for interface text, headings, and conversation prose.",
+      "Do use monospace only for code and measured data.",
+      "Do use sage for actions and selected states, not as a decorative wash across the whole page.",
+      "Do keep reading content in a centered measure no wider than 740px.",
+      "Do keep the composer surface flat; it has no gradient."
+    ],
+    "donts": [
+      "Don't use gradients or decorative AI effects.",
+      "Don't add provider branding or provider-specific details to the frontend.",
+      "Don't put every message or control inside a card.",
+      "Don't use secondary text below 4.5:1 contrast on its actual surface.",
+      "Don't extend the localized Georgia italic `k` into a display-serif heading style."
+    ]
+  }
+}

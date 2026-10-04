@@ -1,0 +1,99 @@
+@import '@fontsource-variable/source-sans-3/wght.css';
+@import 'katex/dist/katex.min.css';
+@import 'highlight.js/styles/github.css';
+
+:root {
+  font-family: "Source Sans 3 Variable", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #292a28;
+  background: #fff;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-optical-sizing: auto;
+  font-size: 14px;
+  font-weight: 400;
+  --surface: #fbfaf7;
+  --sidebar: #f1f0ea;
+  --sidebar-hover: #e8e7e0;
+  --surface-soft: #f1f0ea;
+  --surface-muted: #e8e7e0;
+  --border: #e4e2d9;
+  --border-strong: #d5d3c9;
+  --text: #292a28;
+  --text-secondary: #53574e;
+  --text-muted: #62665d;
+  --accent: #657564;
+  --accent-strong: #4f6250;
+  --accent-soft: #edf1eb;
+  --error: #8b413b;
+  --error-bg: #fbf2f0;
+  --warning: #75622e;
+  --warning-bg: #f8f4e7;
+  --shadow: 0 16px 48px rgb(31 34 27 / 12%);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  color: #e7e7e2;
+  background: #1c1e1b;
+  --surface: #1c1e1b;
+  --sidebar: #171916;
+  --sidebar-hover: #272a25;
+  --surface-soft: #252823;
+  --surface-muted: #30332d;
+  --border: #343730;
+  --border-strong: #484c42;
+  --text: #e7e7e2;
+  --text-secondary: #aaa9a1;
+  --text-muted: #999a91;
+  --accent: #a6b49f;
+  --accent-strong: #c1d0bb;
+  --accent-soft: #2d342b;
+  --error: #e5a49c;
+  --error-bg: #382725;
+  --warning: #d7c182;
+  --warning-bg: #383321;
+  --shadow: 0 16px 48px rgb(0 0 0 / 36%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    color: #e7e7e2;
+    background: #1c1e1b;
+    --surface: #1c1e1b;
+    --sidebar: #171916;
+    --sidebar-hover: #272a25;
+    --surface-soft: #252823;
+    --surface-muted: #30332d;
+    --border: #343730;
+    --border-strong: #484c42;
+    --text: #e7e7e2;
+    --text-secondary: #aaa9a1;
+    --text-muted: #999a91;
+    --accent: #a6b49f;
+    --accent-strong: #c1d0bb;
+    --accent-soft: #2d342b;
+    --error: #e5a49c;
+    --error-bg: #382725;
+    --warning: #d7c182;
+    --warning-bg: #383321;
+    --shadow: 0 16px 48px rgb(0 0 0 / 36%);
+  }
+}
+
+* { box-sizing: border-box; }
+html, body, #root { width: 100%; min-width: 320px; height: 100%; margin: 0; }
+body { overflow: hidden; }
+button, textarea, select { font: inherit; }
+button { color: inherit; }
+button:focus-visible, a:focus-visible, select:focus-visible, textarea:focus-visible, input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+::selection { background: #c9d3c3; color: #20241f; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
