@@ -231,6 +231,14 @@
 .settings-field, .settings-toggle { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 45px; }
 .settings-field strong, .settings-toggle strong { color: var(--text); font-size: 11px; font-weight: 550; }
 .settings-field select { max-width: 185px; padding: 7px 24px 7px 8px; border: 1px solid var(--border); border-radius: 6px; color: var(--text); background: var(--surface); font-size: 10px; }
+.settings-connection-field { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 41px; }
+.settings-connection-field strong, .settings-api-key-field strong { color: var(--text); font-size: 11px; font-weight: 550; }
+.settings-connection-field select, .settings-api-key-field input { min-width: 0; max-width: 240px; padding: 7px 9px; border: 1px solid var(--border-strong); border-radius: 6px; color: var(--text); background: var(--surface); font-size: 11px; }
+.settings-api-key-field { display: grid; gap: 6px; margin-top: 10px; }
+.settings-api-key-field input { width: 100%; max-width: none; }
+.settings-api-key-field small { color: var(--text-muted); font-size: 10px; line-height: 1.45; }
+.settings-api-key-field a { width: fit-content; color: var(--accent-strong); font-size: 10px; text-underline-offset: 2px; }
+.settings-section .history-actions { flex-wrap: wrap; }
 .settings-toggle { margin-top: 10px; }
 .settings-toggle input { width: 15px; height: 15px; accent-color: var(--accent); }
 .history-actions { display: flex; gap: 7px; margin-top: 13px; }
@@ -286,6 +294,8 @@
   .settings-panel { width: 100%; max-height: min(82dvh, 720px); border-radius: 14px 14px 0 0; padding-bottom: env(safe-area-inset-bottom); }
   .settings-header, .settings-section { padding-left: 18px; padding-right: 18px; }
   .settings-field select { max-width: 150px; }
+  .settings-connection-field { align-items: flex-start; flex-direction: column; gap: 5px; padding: 7px 0; }
+  .settings-connection-field select { width: 100%; max-width: none; }
 }
 
 @media (max-width: 380px) {

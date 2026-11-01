@@ -8,6 +8,7 @@ const request = {
   model: 'opaque-model-id',
   messages: [{ role: 'user' as const, content: 'Explain the result.' }],
 }
+const connection = { provider: 'opencode-zen' as const, apiKey: 'test-key' }
 
 function eventStream(...events: string[]) {
   const encoder = new TextEncoder()
@@ -23,23 +24,27 @@ afterEach(() => vi.unstubAllGlobals())
 
 describe('models API boundary', () => {
   it('loads models from the application API without interpreting ids', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
       models: [{ id: 'provider-looking-but-opaque', name: 'Presented name', capabilities: { streaming: true } }],
-    }), { status: 200, headers: { 'Content-Type': 'application/json' } })))
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } }))
+    vi.stubGlobal('fetch', fetchMock)
 
-    await expect(loadModels()).resolves.toEqual([{
+    await expect(loadModels(connection)).resolves.toEqual([{
       id: 'provider-looking-but-opaque',
       name: 'Presented name',
       capabilities: { streaming: true },
     }])
+    const init = fetchMock.mock.calls[0]?.[1] as RequestInit
+    expect(new Headers(init.headers).get('Authorization')).toBe('Bearer test-key')
+    expect(new Headers(init.headers).get('X-Kalam-Provider')).toBe('opencode-zen')
   })
 
   it('rejects malformed model payloads and maps authorization failures', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{"items":[]}', { status: 200 })))
-    await expect(loadModels()).rejects.toThrow(/invalid model list/)
+    await expect(loadModels(connection)).rejects.toThrow(/invalid model list/)
 
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}', { status: 403 })))
-    await expect(loadModels()).rejects.toThrow(/not authorised/)
+    await expect(loadModels(connection)).rejects.toThrow(/not authorised/)
   })
 })
 
@@ -52,17 +57,17 @@ describe('normalised chat stream', () => {
     )))
     let accumulated = ''
 
-    await streamChat({ request, signal: new AbortController().signal, onToken: (text) => { accumulated += text } })
+    await streamChat({ request, connection, signal: new AbortController().signal, onToken: (text) => { accumulated += text } })
 
     expect(accumulated).toBe('First second.')
   })
 
   it('reports incomplete streams and malformed stream events', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(eventStream('data: {"type":"delta","text":"partial"}\n\n')))
-    await expect(streamChat({ request, signal: new AbortController().signal, onToken: () => undefined })).rejects.toThrow(/ended unexpectedly/)
+    await expect(streamChat({ request, connection, signal: new AbortController().signal, onToken: () => undefined })).rejects.toThrow(/ended unexpectedly/)
 
     vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(eventStream('data: {broken json}\n\n')))
-    await expect(streamChat({ request, signal: new AbortController().signal, onToken: () => undefined })).rejects.toThrow(/malformed response stream/)
+    await expect(streamChat({ request, connection, signal: new AbortController().signal, onToken: () => undefined })).rejects.toThrow(/malformed response stream/)
   })
 
   it('cancels a live stream when its AbortSignal fires', async () => {
@@ -77,7 +82,7 @@ describe('normalised chat stream', () => {
     const abort = new AbortController()
     let receivedToken!: () => void
     const received = new Promise<void>((resolve) => { receivedToken = resolve })
-    const generation = streamChat({ request, signal: abort.signal, onToken: receivedToken })
+    const generation = streamChat({ request, connection, signal: abort.signal, onToken: receivedToken })
     await received
     abort.abort()
 
@@ -87,7 +92,7 @@ describe('normalised chat stream', () => {
 
   it('maps request failures to readable errors', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ code: 'context_too_large' }), { status: 413 })))
-    await expect(streamChat({ request, signal: new AbortController().signal, onToken: () => undefined }))
+    await expect(streamChat({ request, connection, signal: new AbortController().signal, onToken: () => undefined }))
       .rejects.toEqual(expect.objectContaining({ name: 'ApiError', message: expect.stringMatching(/too large/) }))
 
     expect(new ApiError('safe').message).toBe('safe')

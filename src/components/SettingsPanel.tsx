@@ -8,23 +8,52 @@ interface SettingsPanelProps {
   settings: Settings
   models: Model[]
   conversations: Conversation[]
+  apiKeyActive: boolean
   onChange: (settings: Settings) => void
+  onConnectApiKey: (apiKey: string) => void
+  onClearApiKey: () => void
   onImport: (conversations: Conversation[]) => Promise<void>
   onClear: () => Promise<void>
   onClose: () => void
 }
 
-export function SettingsPanel({ settings, models, conversations, onChange, onImport, onClear, onClose }: SettingsPanelProps) {
+export function SettingsPanel({ settings, models, conversations, apiKeyActive, onChange, onConnectApiKey, onClearApiKey, onImport, onClear, onClose }: SettingsPanelProps) {
   const fileRef = useRef<HTMLInputElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const [message, setMessage] = useState('')
   const [importing, setImporting] = useState(false)
+  const [apiKeyDraft, setApiKeyDraft] = useState('')
 
   useEffect(() => closeButtonRef.current?.focus(), [])
 
   function update(patch: Partial<Settings>) {
+    if ((patch.provider !== undefined && patch.provider !== settings.provider)
+      || (patch.customBaseUrl !== undefined && patch.customBaseUrl !== settings.customBaseUrl)) {
+      setApiKeyDraft('')
+      onClearApiKey()
+    }
     onChange({ ...settings, ...patch })
   }
+
+  function connectApiKey() {
+    const key = apiKeyDraft.trim()
+    if (!key) {
+      setMessage('Paste an API key to connect this tab.')
+      return
+    }
+    onConnectApiKey(key)
+    setApiKeyDraft('')
+    setMessage('API key active in this tab. It is not saved to this device.')
+  }
+
+  const providerHelp = {
+    'opencode-zen': { label: 'OpenCode Zen', url: 'https://opencode.ai/console' },
+    openai: { label: 'OpenAI', url: 'https://platform.openai.com/api-keys' },
+    openrouter: { label: 'OpenRouter', url: 'https://openrouter.ai/keys' },
+    anthropic: { label: 'Anthropic', url: 'https://console.anthropic.com/settings/keys' },
+    google: { label: 'Google Gemini', url: 'https://aistudio.google.com/app/apikey' },
+    'openai-compatible': { label: 'OpenAI-compatible', url: undefined },
+  }[settings.provider]
 
   function exportHistory() {
     const data = createExport(conversations)
@@ -73,7 +102,7 @@ export function SettingsPanel({ settings, models, conversations, onChange, onImp
   function handleKeyDown(event: KeyboardEvent<HTMLElement>) {
     if (event.key === 'Escape') onClose()
     if (event.key === 'Tab') {
-      const focusable = event.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled):not([hidden]), select:not(:disabled)')
+      const focusable = event.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled):not([hidden]), select:not(:disabled), a[href]')
       const first = focusable[0]
       const last = focusable[focusable.length - 1]
       if (event.shiftKey && document.activeElement === first) {
@@ -116,6 +145,61 @@ export function SettingsPanel({ settings, models, conversations, onChange, onImp
           </div>
         </section>
 
+        <section className="settings-section" aria-labelledby="connection-title">
+          <div className="settings-section-title">
+            <div><h3 id="connection-title">Model connection</h3><p>Use your own provider account and API key.</p></div>
+          </div>
+          <label className="settings-connection-field" htmlFor="api-provider">
+            <strong>Provider</strong>
+            <select
+              id="api-provider"
+              value={settings.provider}
+              onChange={(event) => update({ provider: event.target.value as Settings['provider'] })}
+            >
+              <option value="opencode-zen">OpenCode Zen</option>
+              <option value="openai">OpenAI</option>
+              <option value="openrouter">OpenRouter</option>
+              <option value="anthropic">Anthropic</option>
+              <option value="google">Google Gemini</option>
+              <option value="openai-compatible">Custom OpenAI-compatible</option>
+            </select>
+          </label>
+          {settings.provider === 'openai-compatible' && (
+            <div className="settings-api-key-field">
+              <label htmlFor="provider-base-url"><strong>API base URL</strong></label>
+              <input
+                id="provider-base-url"
+                type="url"
+                value={settings.customBaseUrl}
+                onChange={(event) => update({ customBaseUrl: event.target.value })}
+                placeholder="https://api.example.com/v1"
+                autoComplete="url"
+                spellCheck={false}
+              />
+              <small>Use a trusted public HTTPS endpoint on port 443. Do not include your API key in this address.</small>
+            </div>
+          )}
+          <div className="settings-api-key-field">
+            <label htmlFor="provider-api-key"><strong>{settings.provider === 'openai-compatible' ? 'API key' : `${providerHelp.label} API key`}</strong></label>
+            <input
+              id="provider-api-key"
+              type="password"
+              value={apiKeyDraft}
+              onChange={(event) => setApiKeyDraft(event.target.value)}
+              placeholder={apiKeyActive ? 'A key is active for this tab' : 'Paste your personal API key'}
+              autoComplete="off"
+              spellCheck={false}
+              aria-describedby="api-key-privacy"
+            />
+            {providerHelp.url && <a href={providerHelp.url} target="_blank" rel="noreferrer">Get a key from {providerHelp.label}</a>}
+          </div>
+          <div className="history-actions">
+            <button type="button" className="secondary-button" onClick={connectApiKey} disabled={!apiKeyDraft.trim()}>Use key in this tab</button>
+            {apiKeyActive && <button type="button" className="secondary-button" onClick={() => { onClearApiKey(); setMessage('API key cleared from this tab.') }}>Forget key</button>}
+          </div>
+          <p id="api-key-privacy" className="privacy-copy">The key stays in this tab’s memory and is sent to Cloudflare and the selected provider when needed. It is never saved with your conversations and must be entered again after a reload.</p>
+        </section>
+
         <section className="settings-section">
           <label className="settings-field" htmlFor="default-model">
             <span><strong>Default model</strong><small>Used for new conversations.</small></span>
@@ -140,7 +224,7 @@ export function SettingsPanel({ settings, models, conversations, onChange, onImp
             <input ref={fileRef} type="file" accept="application/json,.json" onChange={importHistory} hidden aria-label="Choose a Kalam conversation export" />
           </div>
           <button type="button" className="clear-history-button" onClick={() => void clearHistory()} disabled={conversations.length === 0}>Clear all local history</button>
-          <p className="privacy-copy">Chat contents stay in this browser unless sent to the application backend for inference.</p>
+           <p className="privacy-copy">Chat history stays in this browser. Messages and your API key are sent through Cloudflare Pages to the selected provider only when needed for inference.</p>
         </section>
         {message && <p className="settings-feedback" role="status">{message}</p>}
       </section>

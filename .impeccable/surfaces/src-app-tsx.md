@@ -6,7 +6,7 @@ The responsive Kalam Chat application shell, conversation view, model selector, 
 
 ## User and task
 
-People use a browser to ask technical questions, read long answers, inspect equations and code, and return to local conversations. The main action is to send a message to a model listed by the application API. The conversation stream and local history are the proof of that task. Keep provider details, inference locations, and authentication out of the UI.
+People use a browser to ask technical questions, read long answers, inspect equations and code, and return to local conversations. The main action is to send a message to a model listed by the Pages API. The conversation stream and local history are the proof of that task. Keep provider selection and key entry in Settings, away from the main reading workspace; never show a key after entry.
 
 ## Direction contract
 

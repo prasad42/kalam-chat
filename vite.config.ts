@@ -19,7 +19,7 @@ function developmentApi(): Plugin {
           }
           response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' }).end(JSON.stringify({
             models: [
-              { id: 'mock-reasoning', name: 'Reasoning (mock)', description: 'A development model for careful, step-by-step answers.', capabilities: { streaming: true, vision: false, attachments: false } },
+              { id: 'mock-reasoning', name: 'Reasoning (mock)', capabilities: { streaming: true, vision: false, attachments: false } },
               { id: 'mock-compact', name: 'Compact (mock)', description: 'A quicker development model for concise answers.', capabilities: { streaming: true, vision: false, attachments: false } },
               { id: 'mock-long-context', name: 'Long context (mock)', description: 'A development model for exploring longer prompts.', capabilities: { streaming: true, vision: true, attachments: false } },
             ],
