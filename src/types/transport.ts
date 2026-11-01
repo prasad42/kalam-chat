@@ -1,4 +1,10 @@
-import type { Role } from './domain'
+import type { ProviderId, Role } from './domain'
+
+export interface ApiConnection {
+  provider: ProviderId
+  apiKey: string
+  baseUrl?: string
+}
 
 export interface ApiModel {
   id: string

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { clearAllConversations } from './storage/conversations'
+import { getSettings } from './storage/settings'
 
 function streamResponse(text: string): Response {
   const encoder = new TextEncoder()
@@ -27,18 +28,28 @@ describe('Kalam chat UI', () => {
   })
 
   it('loads API models and displays a streamed local conversation', async () => {
-    vi.stubGlobal('fetch', vi.fn((input: RequestInfo | URL) => {
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       if (String(input) === '/api/models') {
+        const authorization = new Headers(init?.headers).get('Authorization')
+        if (!authorization) return Promise.resolve(new Response(JSON.stringify({ code: 'api_key_required' }), { status: 401 }))
         return Promise.resolve(new Response(JSON.stringify({
           models: [{ id: 'opaque-model', name: 'Research model', description: 'A short API-supplied description.', capabilities: { streaming: true } }],
         }), { status: 200, headers: { 'Content-Type': 'application/json' } }))
       }
       return Promise.resolve(streamResponse('The answer is **42**.'))
-    }))
+    })
+    vi.stubGlobal('fetch', fetchMock)
     const user = userEvent.setup()
     render(<App />)
 
+    await screen.findByText('Add your provider API key in Settings to load models and chat.')
+    await user.click(screen.getByRole('button', { name: 'Open Settings' }))
+    await screen.findByRole('dialog', { name: 'Settings' })
+    await user.type(screen.getByLabelText('OpenCode Zen API key'), 'sk-test-user-key')
+    await user.click(screen.getByRole('button', { name: 'Use key in this tab' }))
     expect(await screen.findAllByText('A short API-supplied description.')).not.toHaveLength(0)
+    await expect(getSettings()).resolves.not.toHaveProperty('apiKey')
+    await user.click(screen.getByRole('button', { name: 'Close settings' }))
     const composer = screen.getByRole('textbox', { name: 'Message Kalam' })
     await user.type(composer, 'What is the answer?')
     await user.click(screen.getByRole('button', { name: 'Send message' }))
@@ -49,6 +60,8 @@ describe('Kalam chat UI', () => {
     }, { timeout: 5000 })
     expect(screen.getAllByText('What is the answer?').length).toBeGreaterThan(0)
     expect(await screen.findByRole('button', { name: 'Regenerate response' })).toBeInTheDocument()
+    const chatCall = fetchMock.mock.calls.find(([url]) => String(url) === '/api/chat')
+    expect(new Headers(chatCall?.[1]?.headers).get('Authorization')).toBe('Bearer sk-test-user-key')
   })
 
   it('keeps browser chrome in sync with the selected theme', async () => {
@@ -63,7 +76,7 @@ describe('Kalam chat UI', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await screen.findByText('No models are available from the application API.')
+    await screen.findByText('No chat models are available from this provider.')
     expect(themeColor.content).toBe('#1c1e1b')
     await user.click(screen.getByRole('button', { name: 'Settings' }))
     await user.click(screen.getByRole('button', { name: 'Light' }))

@@ -1,4 +1,4 @@
-import type { ApiErrorPayload } from '../types/transport'
+import type { ApiConnection, ApiErrorPayload } from '../types/transport'
 
 export class ApiError extends Error {
   readonly status?: number
@@ -15,10 +15,12 @@ export class ApiError extends Error {
 export async function requestJson<T>(path: string, init: RequestInit = {}): Promise<T> {
   let response: Response
   try {
+    const headers = new Headers(init.headers)
+    if (!headers.has('Accept')) headers.set('Accept', 'application/json')
     response = await fetch(path, {
       ...init,
       credentials: 'same-origin',
-      headers: { Accept: 'application/json', ...init.headers },
+      headers,
     })
   } catch (error) {
     if (isAbortError(error)) throw error
@@ -45,15 +47,28 @@ export async function errorFromResponse(response: Response): Promise<ApiError> {
 }
 
 export function statusMessage(status: number, code?: string): string {
-  if (status === 401 || status === 403) return 'Your session is not authorised. Sign in to the application and try again.'
+  if (code === 'api_key_required') return 'Add your provider API key in Settings to load models and chat.'
+  if (code === 'invalid_api_key') return 'The provider rejected this API key. Check it in Settings and try again.'
+  if (code === 'invalid_provider_config') return 'Check the provider and API address in Settings, then try again.'
+  if (code === 'unsupported_model') return 'This model is not supported by the selected provider connection.'
+  if (status === 401 || status === 403) return 'The provider rejected this API key, or this application session is not authorised.'
   if (status === 404 && code === 'model_unavailable') return 'This model is currently unavailable. Choose another model and try again.'
   if (status === 413 || code === 'context_too_large') return 'This conversation is too large for the selected model. Start a new chat or remove earlier messages.'
-  if (status === 429) return 'The application is busy right now. Wait a moment and try again.'
-  if (status >= 500) return 'The application encountered a problem. Your message is still saved locally; please try again.'
+  if (status === 429) return 'The provider is busy or rate-limiting requests. Wait a moment and try again.'
+  if (status >= 500) return 'The provider could not complete the request. Your message is still saved locally; please try again.'
   if (status === 404) return 'The requested application API route was not found.'
   if (status === 400 || code === 'invalid_request') return 'The request was rejected. Check the message and try again.'
   if (status >= 400 && status < 500) return 'The request could not be completed. Check your session and conversation, then try again.'
   return 'The request could not be completed. Please try again.'
+}
+
+export function connectionHeaders(connection: ApiConnection): Headers {
+  const headers = new Headers({ 'X-Kalam-Provider': connection.provider })
+  if (connection.apiKey.trim()) headers.set('Authorization', `Bearer ${connection.apiKey.trim()}`)
+  if (connection.provider === 'openai-compatible' && connection.baseUrl?.trim()) {
+    headers.set('X-Kalam-Base-URL', connection.baseUrl.trim())
+  }
+  return headers
 }
 
 export function isAbortError(error: unknown): boolean {

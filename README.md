@@ -1,6 +1,6 @@
 # Kalam Chat
 
-A provider-agnostic chat frontend. Kalam calls the same-origin application API at `/api/models` and `/api/chat`; it does not know which service runs inference.
+A browser-based chat app. Users connect their own API key for OpenCode Zen, OpenAI, OpenRouter, Anthropic, Google Gemini, or a custom OpenAI-compatible API. Provider credentials are used by the same-origin Cloudflare Pages Function; they are not included in the public frontend bundle.
 
 ## Run locally
 
@@ -21,11 +21,11 @@ npm run build
 
 ## Cloudflare Pages
 
-Build with `npm run build` and publish `dist`. Pages Functions route `/api/models` and `/api/chat` to a compatible application API using the server-side `KALAM_API_ORIGIN` setting. See [docs/deployment.md](docs/deployment.md) before connecting a production backend. Do not deploy until Cloudflare Access denies everyone except the explicitly authorised list of at most 10 users.
+Build with `npm run build` and publish `dist`. Pages Functions implement `/api/models` and `/api/chat`, forwarding requests to the selected provider. Each user enters their own API key in Settings; it remains in tab memory and is sent through Cloudflare to the provider. See [docs/deployment.md](docs/deployment.md) before deployment. Do not deploy until Cloudflare Access denies everyone except the explicitly authorised list of at most 10 users.
 
 ## Project notes
 
 - [Architecture](docs/architecture.md)
 - [Deployment and access control](docs/deployment.md)
 
-Conversation history and preferences live in this browser's IndexedDB. Kalam does not add analytics or telemetry. Messages are sent to the application API only when the user requests inference.
+Conversation history and preferences live in this browser's IndexedDB. Provider selection and the optional custom API URL are saved there; API keys are not. Kalam does not add analytics or telemetry. Messages and the active user's key are sent through the Pages Function only when the user requests model access or inference.

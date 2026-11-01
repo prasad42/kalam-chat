@@ -10,6 +10,7 @@ import { Sidebar } from './components/Sidebar'
 import { useChat } from './hooks/useChat'
 import { getSettings, saveSettings } from './storage/settings'
 import { DEFAULT_SETTINGS, type Model, type Settings } from './types/domain'
+import type { ApiConnection } from './types/transport'
 import './App.css'
 
 const SUGGESTIONS = [
@@ -24,19 +25,36 @@ function App() {
   const [modelsError, setModelsError] = useState<string | null>(null)
   const [modelRequest, setModelRequest] = useState(0)
   const [settings, setSettings] = useState(DEFAULT_SETTINGS)
+  const [settingsReady, setSettingsReady] = useState(false)
+  const [apiKey, setApiKey] = useState('')
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [draft, setDraft] = useState('')
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null)
-  const chat = useChat(models, settings.defaultModelId)
+  const apiConnection = useMemo<ApiConnection>(() => ({
+    provider: settings.provider,
+    apiKey,
+    ...(settings.provider === 'openai-compatible' ? { baseUrl: settings.customBaseUrl } : {}),
+  }), [apiKey, settings.customBaseUrl, settings.provider])
+  const chat = useChat(models, settings.defaultModelId, apiConnection)
+  const stopGeneration = chat.stopGeneration
   const scrollRef = useRef<HTMLDivElement>(null)
   const active = chat.activeConversation
 
   useEffect(() => {
+    let alive = true
+    void getSettings().then((saved) => { if (alive) setSettings(saved) }).catch(() => undefined).finally(() => {
+      if (alive) setSettingsReady(true)
+    })
+    return () => { alive = false }
+  }, [])
+
+  useEffect(() => {
+    if (!settingsReady) return
     const controller = new AbortController()
     let alive = true
-    void loadModels(controller.signal).then((loaded) => {
+    void loadModels(apiConnection, controller.signal).then((loaded) => {
       if (alive) setModels(loaded)
     }).catch((error: unknown) => {
       if (!alive || controller.signal.aborted) return
@@ -44,12 +62,11 @@ function App() {
     }).finally(() => {
       if (alive) setModelsLoading(false)
     })
-    void getSettings().then((saved) => { if (alive) setSettings(saved) }).catch(() => undefined)
     return () => {
       alive = false
       controller.abort()
     }
-  }, [modelRequest])
+  }, [apiConnection, modelRequest, settingsReady])
 
   useEffect(() => {
     const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
@@ -92,9 +109,26 @@ function App() {
   }, [active, models, settings.defaultModelId])
 
   const updateSettings = useCallback((next: Settings) => {
-    setSettings(next)
-    void saveSettings(next).catch(() => undefined)
-  }, [])
+    const connectionChanged = next.provider !== settings.provider || next.customBaseUrl !== settings.customBaseUrl
+    const updated = connectionChanged ? { ...next, defaultModelId: '' } : next
+    if (connectionChanged) {
+      stopGeneration()
+      setApiKey('')
+      setModels([])
+      setModelsLoading(true)
+      setModelsError(null)
+    }
+    setSettings(updated)
+    void saveSettings(updated).catch(() => undefined)
+  }, [settings.customBaseUrl, settings.provider, stopGeneration])
+
+  const clearApiKey = useCallback(() => {
+    stopGeneration()
+    setApiKey('')
+    setModels([])
+    setModelsLoading(true)
+    setModelsError(null)
+  }, [stopGeneration])
 
   async function sendDraft() {
     const content = draft.trim()
@@ -158,7 +192,7 @@ function App() {
 
         {(modelsError || chat.error || chat.storageError) && (
           <div className="notice-stack" role="status">
-            {modelsError && <div className="notice notice-error"><span>{modelsError}</span><button type="button" onClick={() => { setModelsLoading(true); setModelsError(null); setModelRequest((value) => value + 1) }}><RotateCcw size={14} />Retry models</button></div>}
+            {modelsError && <div className="notice notice-error"><span>{modelsError}</span><div><button type="button" onClick={() => setSettingsOpen(true)}>Open Settings</button><button type="button" onClick={() => { setModelsLoading(true); setModelsError(null); setModelRequest((value) => value + 1) }}><RotateCcw size={14} />Retry models</button></div></div>}
             {chat.error && <div className="notice notice-error"><span>{chat.error}</span><div><button type="button" onClick={() => void retryGeneration()} disabled={chat.busy}><RotateCcw size={14} />Retry</button><button type="button" className="notice-dismiss" onClick={() => chat.setError(null)} aria-label="Dismiss error">×</button></div></div>}
             {chat.storageError && <div className="notice notice-warning"><span>{chat.storageError}</span></div>}
           </div>
@@ -198,7 +232,7 @@ function App() {
         </div>
 
         <footer className="composer-area">
-          {!modelsLoading && models.length === 0 && !modelsError && <p className="model-empty-hint">No models are available from the application API.</p>}
+          {!modelsLoading && models.length === 0 && !modelsError && <p className="model-empty-hint">No chat models are available from this provider.</p>}
           <Composer
             value={draft}
             onChange={setDraft}
@@ -218,7 +252,16 @@ function App() {
           settings={settings}
           models={models}
           conversations={chat.conversations}
+          apiKeyActive={Boolean(apiKey)}
           onChange={updateSettings}
+          onConnectApiKey={(key) => {
+            setModels([])
+            setModelsLoading(true)
+            setModelsError(null)
+            setApiKey(key)
+            setModelRequest((value) => value + 1)
+          }}
+          onClearApiKey={clearApiKey}
           onImport={async (items) => { await chat.importHistory(items); setEditingMessageId(null); setDraft('') }}
           onClear={async () => { await chat.clearAll(); setEditingMessageId(null); setDraft('') }}
           onClose={() => setSettingsOpen(false)}

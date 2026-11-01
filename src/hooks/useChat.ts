@@ -8,6 +8,7 @@ import {
   titleFromMessage,
 } from '../utils/conversations'
 import type { Conversation, Message, Model } from '../types/domain'
+import type { ApiConnection } from '../types/transport'
 import {
   clearAllConversations as clearStoredConversations,
   createConversation as persistNewConversation,
@@ -23,7 +24,7 @@ function friendlyError(error: unknown): string {
   return 'The response could not be completed. Your conversation is saved locally; you can retry.'
 }
 
-export function useChat(models: Model[], defaultModelId: string) {
+export function useChat(models: Model[], defaultModelId: string, connection: ApiConnection = { provider: 'opencode-zen', apiKey: '' }) {
   const [conversations, setConversations] = useState<Conversation[]>([])
   const conversationsRef = useRef<Conversation[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
@@ -146,7 +147,7 @@ export function useChat(models: Model[], defaultModelId: string) {
     if (!current.modelId) {
       const fallbackModel = models.find((model) => model.id === defaultModelId) ?? models[0]
       if (!fallbackModel) {
-        setError('No models are available. Check the application API and try again.')
+        setError('No models are available for this provider. Check the connection in Settings and try again.')
         return false
       }
       current = { ...current, modelId: fallbackModel.id }
@@ -176,6 +177,7 @@ export function useChat(models: Model[], defaultModelId: string) {
           model: current.modelId,
           messages: messages.map(({ role, content }) => ({ role, content })),
         },
+        connection,
         signal: controller.signal,
         onToken(text) {
           current = {
@@ -222,7 +224,7 @@ export function useChat(models: Model[], defaultModelId: string) {
         setBusy(false)
       }
     }
-  }, [defaultModelId, flushScheduledSave, models, persist, updateConversation])
+  }, [connection, defaultModelId, flushScheduledSave, models, persist, updateConversation])
 
   const send = useCallback(async (content: string, editMessageId?: string): Promise<boolean> => {
     const cleanContent = content.trim()

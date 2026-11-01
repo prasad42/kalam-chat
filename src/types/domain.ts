@@ -31,16 +31,22 @@ export interface Model {
 
 export type Theme = 'system' | 'light' | 'dark'
 
+export type ProviderId = 'opencode-zen' | 'openai' | 'openrouter' | 'anthropic' | 'google' | 'openai-compatible'
+
 export interface Settings {
   theme: Theme
   defaultModelId: string
   enterToSend: boolean
+  provider: ProviderId
+  customBaseUrl: string
 }
 
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'dark',
   defaultModelId: '',
   enterToSend: true,
+  provider: 'opencode-zen',
+  customBaseUrl: '',
 }
 
 export interface KalamExport {

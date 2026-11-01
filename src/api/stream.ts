@@ -1,19 +1,24 @@
-import { ApiError, errorFromResponse, isAbortError } from './client'
-import type { ChatRequest, StreamEvent } from '../types/transport'
+import { ApiError, connectionHeaders, errorFromResponse, isAbortError } from './client'
+import type { ApiConnection, ChatRequest, StreamEvent } from '../types/transport'
 
 export interface StreamChatOptions {
   request: ChatRequest
+  connection: ApiConnection
   signal: AbortSignal
   onToken: (text: string) => void
 }
 
-export async function streamChat({ request, signal, onToken }: StreamChatOptions): Promise<void> {
+export async function streamChat({ request, connection, signal, onToken }: StreamChatOptions): Promise<void> {
   let response: Response
   try {
     response = await fetch('/api/chat', {
       method: 'POST',
       credentials: 'same-origin',
-      headers: { Accept: 'text/event-stream', 'Content-Type': 'application/json' },
+      headers: new Headers({
+        ...Object.fromEntries(connectionHeaders(connection)),
+        Accept: 'text/event-stream',
+        'Content-Type': 'application/json',
+      }),
       body: JSON.stringify(request),
       signal,
     })

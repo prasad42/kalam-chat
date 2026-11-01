@@ -1,9 +1,9 @@
-import { requestJson } from './client'
+import { connectionHeaders, requestJson } from './client'
 import type { Model } from '../types/domain'
-import type { ApiModel, ModelsResponse } from '../types/transport'
+import type { ApiConnection, ApiModel, ModelsResponse } from '../types/transport'
 
-export async function loadModels(signal?: AbortSignal): Promise<Model[]> {
-  const response = await requestJson<ModelsResponse>('/api/models', { signal })
+export async function loadModels(connection: ApiConnection, signal?: AbortSignal): Promise<Model[]> {
+  const response = await requestJson<ModelsResponse>('/api/models', { signal, headers: connectionHeaders(connection) })
   if (!response || !Array.isArray(response.models)) throw new Error('The application server returned an invalid model list.')
   return response.models.map(normalizeModel)
 }

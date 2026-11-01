@@ -16,25 +16,25 @@ Kalam Chat is for people who want to hold technical conversations in a browser. 
 
 ## Product Purpose
 
-Kalam Chat provides a browser interface for conversations with models through a compatible Kalam application API. Success means people can exchange streamed messages, keep their history on their own device, and use a compatible backend without changing the interface.
+Kalam Chat provides a browser interface for conversations with models through a same-origin Cloudflare Pages Function. Users connect their own provider account and key. Success means people can exchange streamed messages and keep their history on their own device without sharing a provider credential with the site owner.
 
 ## Positioning
 
-The frontend handles conversations, models, and user-facing capabilities. The application API handles inference and any provider-specific routing or authentication. Kalam does not contain provider credentials or provider integrations.
+The frontend handles conversations, provider selection, API-key entry, and user-facing capabilities. The Pages Function handles provider-specific authentication, routing, and streaming. User keys are memory-only in the browser and are not saved by Kalam; requests pass through Cloudflare before reaching the provider.
 
 ## Operating Context
 
-People use Kalam in a desktop or mobile browser. The initial product is a small, access-controlled deployment. Chat history stays in the browser's IndexedDB unless a message is sent to the application API for inference.
+People use Kalam in a desktop or mobile browser. The initial product is a small, access-controlled deployment. Chat history stays in the browser's IndexedDB unless a message is sent through the Pages Function for inference.
 
 ## Capabilities and Constraints
 
 - Users can create, edit, regenerate, rename, delete, export, and import conversations.
 - The model list comes from `GET /api/models`; generation uses `POST /api/chat` and a normalised streaming layer.
 - A development mock API lets the frontend run without an inference backend.
-- The production application API must enforce its own session and access rules. A browser-side allowlist is not an access-control mechanism.
+- The production Pages Function must be protected by Cloudflare Access along with the frontend. A browser-side allowlist is not an access-control mechanism.
 - Cloudflare Access must protect the initial deployment with an explicit allowlist of no more than 10 people and deny all others. The policy must cover the frontend and `/api/*`. Configure it before deployment. OAuth or identity-provider details remain open until that setup is needed.
 - Conversations are local data. Kalam does not add analytics, telemetry, advertising, or third-party session replay.
-- Attachments, cloud sync, provider credentials, provider OAuth, billing, and inference-specific features are out of scope for v1.
+- Attachments, cloud sync, shared provider credentials, provider OAuth, billing management, and inference-specific features are out of scope for v1.
 
 ## Brand Commitments
 
